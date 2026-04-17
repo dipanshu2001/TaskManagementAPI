@@ -16,5 +16,4 @@ const connectPostgres = async () => {
   console.log('PostgreSQL connected');
 };
 
-module.exports = connectPostgres;
-module.exports.pool = pool;
+module.exports = {connectPostgres, pool};

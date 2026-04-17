@@ -2,9 +2,12 @@ const Task = require('../mongodb/taskModel');
 const AppError = require('../utils/appError');
 const asyncHandler = require('../middleware/asyncHandler.js');
 
-exports.createTask = asyncHandler(async (req, res) => {
+exports.createTask = asyncHandler(async(req, res) => {
   const task = await Task.create({
-    ...req.body,
+    title,
+    description,
+    dueDate,
+    status,
     userId: req.user.id
   });
 
@@ -36,9 +39,11 @@ exports.getTasks = asyncHandler(async (req, res) => {
 
 exports.getTaskById = asyncHandler(async (req, res) => {
   const task = await Task.findOne({ _id: req.params.id, userId: req.user.id });
-
-  if (!task) {
+  if(!task){
     throw new AppError('Task not found', 404);
+  }
+  if(task.userId !== req.user.id){
+    throw new AppError('Forbidden: you do not have access to this task', 403);
   }
 
   res.status(200).json({
@@ -48,16 +53,26 @@ exports.getTaskById = asyncHandler(async (req, res) => {
 });
 
 exports.updateTask = asyncHandler(async (req, res) => {
-  const task = await Task.findOneAndUpdate(
-    { _id: req.params.id, userId: req.user.id },
-    req.body,
-    { new: true, runValidators: true }
-  );
+  const task = await Task.findById(req.params.id);
 
-  if (!task) {
+  if(!task){
     throw new AppError('Task not found or access denied', 404);
   }
-
+  if(task.userId !== req.user.id){
+    throw new AppError('Forbidden: you do not have access to this task', 403);
+  }
+  const{title, description, dueDate, status} = req.body;
+  const updates = {};
+  if (title !== undefined) updates.title = title;
+  if (description !== undefined) updates.description = description;
+  if (dueDate !== undefined) updates.dueDate = dueDate;
+  if (status !== undefined) updates.status = status;
+ 
+  const updated = await Task.findByIdAndUpdate(req.params.id, updates, {
+    new: true,
+    runValidators: true
+  });
+  
   res.status(200).json({
     success: true,
     message: 'Task updated successfully',
@@ -66,10 +81,12 @@ exports.updateTask = asyncHandler(async (req, res) => {
 });
 
 exports.deleteTask = asyncHandler(async (req, res) => {
-  const task = await Task.findOneAndDelete({ _id: req.params.id, userId: req.user.id });
-
-  if (!task) {
-    throw new AppError('Task not found or access denied', 404);
+  const task = await Task.findById(req.params.id);
+  if(!task){
+    throw new AppError('Task not found', 404);
+  }
+  if(task.userId !== req.user.id){
+    throw new AppError('Forbidden: you do not have access to this task', 403);
   }
 
   res.status(200).json({
