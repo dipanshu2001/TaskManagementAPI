@@ -1,6 +1,6 @@
 require('dotenv').config();
 const app=require('./app');
-const connectPostgres=require('./config/postgres');
+const {connectPostgres}=require('./config/postgres');
 const connectMongo = require('./config/mongo');
 
 const PORT=process.env.PORT || 5000;

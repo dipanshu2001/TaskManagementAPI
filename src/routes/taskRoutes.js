@@ -23,7 +23,21 @@ router.post(
     body('status')
       .optional()
       .isIn(['pending', 'completed'])
-      .withMessage('Status must be either pending or completed')
+      .withMessage('Status must be either pending or completed'),
+      body('categoryId')
+      .optional()
+      .isMongoId()
+      .withMessage('categoryId must be a valid MongoDB ObjectId'),
+    body('tags')
+      .optional()
+      .isArray({ max: 10 })
+      .withMessage('Tags must be an array of up to 10 items'),
+    body('tags.*')
+      .optional()
+      .isString()
+      .trim()
+      .notEmpty()
+      .withMessage('Each tag must be a non-empty string')
   ],
   validationMiddleware,
   createTask
@@ -38,10 +52,10 @@ router.patch(
     body('title').optional().trim().notEmpty().withMessage('Title cannot be empty'),
     body('description').optional().isString().withMessage('Description must be a string'),
     body('dueDate').optional().isISO8601().withMessage('Due date must be a valid ISO date'),
-    body('status')
-      .optional()
-      .isIn(['pending', 'completed'])
-      .withMessage('Status must be either pending or completed')
+    body('status').optional().isIn(['pending', 'completed']).withMessage('Status must be either pending or completed'),
+    body('categoryId').optional().isMongoId().withMessage('categoryId must be a valid MongoDB ObjectId'),
+    body('tags').optional().isArray({ max: 10 }).withMessage('Tags must be an array of up to 10 items'),
+    body('tags.*').optional().isString().trim().notEmpty().withMessage('Each tag must be a non-empty string')
   ],
   validationMiddleware,
   updateTask
